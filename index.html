@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NFL Jersey Sale Index</title>
+    <style>
+        body { font-family: system-ui; margin: 24px; background-color: #f8f9fa; }
+        h1 { margin-bottom: 8px; }
+        h2 { margin-top: 32px; margin-bottom: 8px; }
+        p { margin-top: 0; }
+        .section-box { background: #ffffff; border: 1px solid #dddddd; padding: 16px 20px; margin-bottom: 16px; }
+        .form-row { margin-bottom: 8px; }
+        label { font-weight: 600; margin-right: 8px; }
+        input[type="text"] { width: 260px; padding: 4px 6px; }
+        button { padding: 6px 12px; cursor: pointer; }
+        .results-row { display: flex; gap: 24px; align-items: flex-start; margin-top: 12px; }
+        .result-panel { flex: 1; background: #ffffff; border: 1px solid #dddddd; padding: 12px 16px; }
+        .panel-title { font-weight: 600; margin-bottom: 4px; }
+        .exec-time { font-size: 0.9rem; color: #555555; margin-bottom: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { border: 1px solid #dddddd; padding: 4px 6px; text-align: left; }
+        th { background: #f1f3f5; }
+    </style>
+</head>
+<body>
+    <h1>NFL Jersey Sale Index</h1>
+    <p>Compare Query Performance On NFL Jersey Sales With And Without Indexing.</p>
+
+    <h2>Search Without Indexing</h2>
+    <div class="section-box">
+        <form method="post" action="/search_no_index">
+            <div class="form-row">
+                <label>Single-Table Search (Player Name):</label>
+                <input
+                    type="text"
+                    name="player_no_idx"
+                    value="{{ player_no_idx }}"
+                    placeholder="Enter Player Name">
+            </div>
+            <div class="form-row">
+                <label>Two-Table Search (Shipping State):</label>
+                <input
+                    type="text"
+                    name="state_no_idx"
+                    value="{{ state_no_idx }}"
+                    placeholder="Enter State Abv">
+            </div>
+            <button type="submit">Run Searches Without Indexes</button>
+        </form>
+    </div>
+
+    <div class="results-row">
+        <div class="result-panel">
+            <div class="panel-title">Single-Table Query</div>
+            <div class="exec-time">
+                {% if no_idx_single_time %}
+                    Execution Time: {{ "%.2f" % no_idx_single_time }} Ms
+                {% else %}
+                    Execution Time: —
+                {% endif %}
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Jersey Name</th>
+                        <th>Team</th>
+                        <th>Type</th>
+                        <th>Size</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if no_idx_single %}
+                        {% for r in no_idx_single %}
+                        <tr>
+                            <td>{{ r.jerseyname }}</td>
+                            <td>{{ r.team }}</td>
+                            <td>{{ r.jerseytype }}</td>
+                            <td>{{ r.jerseysize }}</td>
+                            <td>{{ "%.2f" % r.jerseyprice }}</td>
+                            <td>{{ r.quantitysold }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr><td colspan="6">No Results Yet.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="result-panel">
+            <div class="panel-title">Two-Table Query</div>
+            <div class="exec-time">
+                {% if no_idx_join_time %}
+                    Execution Time: {{ "%.2f" % no_idx_join_time }} Ms
+                {% else %}
+                    Execution Time: —
+                {% endif %}
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order Id</th>
+                        <th>State</th>
+                        <th>Total</th>
+                        <th>Jersey Name</th>
+                        <th>Team</th>
+                        <th>Price</th>
+                        <th>Qty</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if no_idx_join %}
+                        {% for r in no_idx_join %}
+                        <tr>
+                            <td>{{ r.orderid }}</td>
+                            <td>{{ r.shippingstate }}</td>
+                            <td>{{ "%.2f" % r.ordertotal }}</td>
+                            <td>{{ r.jerseyname }}</td>
+                            <td>{{ r.team }}</td>
+                            <td>{{ "%.2f" % r.jerseyprice }}</td>
+                            <td>{{ r.quantitysold }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr><td colspan="7">No Results Yet.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <h2>Search With Indexing</h2>
+    <div class="section-box">
+        <form method="post" action="/search_with_index">
+            <div class="form-row">
+                <label>Single-Table Search (Player Name):</label>
+                <input
+                    type="text"
+                    name="player_idx"
+                    value="{{ player_idx }}"
+                    placeholder="Enter Player Name">
+            </div>
+            <div class="form-row">
+                <label>Two-Table Search (Shipping State):</label>
+                <input
+                    type="text"
+                    name="state_idx"
+                    value="{{ state_idx }}"
+                    placeholder="Enter State Abv">
+            </div>
+            <button type="submit">Run Searches With Indexes</button>
+        </form>
+    </div>
+
+    <div class="results-row">
+        <div class="result-panel">
+            <div class="panel-title">Single-Table Query (Indexed)</div>
+            <div class="exec-time">
+                {% if idx_single_time %}
+                    Execution Time: {{ "%.2f" % idx_single_time }} Ms
+                {% else %}
+                    Execution Time: —
+                {% endif %}
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Jersey Name</th>
+                        <th>Team</th>
+                        <th>Type</th>
+                        <th>Size</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if idx_single %}
+                        {% for r in idx_single %}
+                        <tr>
+                            <td>{{ r.jerseyname }}</td>
+                            <td>{{ r.team }}</td>
+                            <td>{{ r.jerseytype }}</td>
+                            <td>{{ r.jerseysize }}</td>
+                            <td>{{ "%.2f" % r.jerseyprice }}</td>
+                            <td>{{ r.quantitysold }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr><td colspan="6">No Results Yet.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="result-panel">
+            <div class="panel-title">Two-Table Query (Indexed)</div>
+            <div class="exec-time">
+                {% if idx_join_time %}
+                    Execution Time: {{ "%.2f" % idx_join_time }} Ms
+                {% else %}
+                    Execution Time: —
+                {% endif %}
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order Id</th>
+                        <th>State</th>
+                        <th>Total</th>
+                        <th>Jersey Name</th>
+                        <th>Team</th>
+                        <th>Price</th>
+                        <th>Qty</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if idx_join %}
+                        {% for r in idx_join %}
+                        <tr>
+                            <td>{{ r.orderid }}</td>
+                            <td>{{ r.shippingstate }}</td>
+                            <td>{{ "%.2f" % r.ordertotal }}</td>
+                            <td>{{ r.jerseyname }}</td>
+                            <td>{{ r.team }}</td>
+                            <td>{{ "%.2f" % r.jerseyprice }}</td>
+                            <td>{{ r.quantitysold }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr><td colspan="7">No Results Yet.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
